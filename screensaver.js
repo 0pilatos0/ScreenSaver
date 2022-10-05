@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Screensaver
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  screensaver for saving the oled screen from burnin
 // @author       Paul van der Lei
 // @match        https://monitoring.wics.nl/*
