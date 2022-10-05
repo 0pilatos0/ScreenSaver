@@ -40,5 +40,5 @@
     setInterval(() => {
         image.style.display = "block";
         roll();
-    }, 14400);
+    }, 14400 * 1000);
 })();
