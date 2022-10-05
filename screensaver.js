@@ -36,8 +36,9 @@
 
     roll();
 
+    //run once every 4 hours
     setInterval(() => {
         image.style.display = "block";
         roll();
-    }, 10000);
+    }, 14400);
 })();
