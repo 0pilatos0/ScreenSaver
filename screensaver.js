@@ -14,6 +14,9 @@
 
     const imageUrl = "https://nextgen.wics.nl/r200sprint/img/favicon.png";
     const image = document.createElement("img");
+
+    const interval = 2 * 60 * 60 * 1000;
+
     image.src = imageUrl;
     image.style.height = "110vh";
     image.style.position = "fixed";
@@ -40,5 +43,5 @@
     setInterval(() => {
         image.style.display = "block";
         roll();
-    }, 14400 * 1000);
+    }, interval);
 })();
