@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Screensaver
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  screensaver for saving the oled screen from burnin
 // @author       Paul van der Lei
 // @match        https://monitoring.wics.nl/*
@@ -14,8 +14,6 @@
 
     const imageUrl = "https://nextgen.wics.nl/r200sprint/img/favicon.png";
     const image = document.createElement("img");
-
-    const interval = 2 * 60 * 60 * 1000;
 
     image.src = imageUrl;
     image.style.height = "110vh";
@@ -37,11 +35,15 @@
         requestAnimationFrame(roll);
     }
 
-    roll();
+    // roll();
 
-    //run once every 4 hours
     setInterval(() => {
-        image.style.display = "block";
-        roll();
-    }, interval);
+        var date = new Date();
+        if (date.getHours() % 2 == 0 && date.getMinutes() == 0) {
+            console.log("running screensaver at [" + date + "]");
+            image.style.display = "block";
+            roll();
+        }
+    }, 60000);
+
 })();
