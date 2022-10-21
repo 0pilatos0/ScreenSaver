@@ -51,7 +51,7 @@
     }
 
     const cycle = () => {
-        rgbCycle.display = "block";
+        rgbCycle.style.display = "block";
         rgbCycle.style.left = parseInt(rgbCycle.style.left) + 1 + "%";
         if (parseInt(rgbCycle.style.left) > 100) {
             rgbCycle.style.left = "0";
