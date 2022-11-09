@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Screensaver
 // @namespace    http://tampermonkey.net/
-// @version      0.6
+// @version      0.7
 // @description  screensaver for saving the oled screen from burnin
 // @author       Paul van der Lei
 // @match        https://monitoring.wics.nl/*
@@ -27,7 +27,7 @@
     const santa = document.createElement("img");
     santa.src = "https://www.pngall.com/wp-content/uploads/5/Santa-Sleigh-PNG.png";
     santa.style.position = "fixed";
-    santa.style.zIndex = "99999999";
+    santa.style.zIndex = "99999998";
     santa.style.height = "30vh";
     santa.style.bottom = "-8vh";
     santa.style.display = "none";
@@ -49,13 +49,24 @@
     const sinterklaas = document.createElement("img");
     sinterklaas.src = "https://miamary.clubs.nl/afbeeldingen/album/21867269/3602827-sinterklaas-paard.png";
     sinterklaas.style.position = "fixed";
-    sinterklaas.style.zIndex = "99999999";
+    sinterklaas.style.zIndex = "99999998";
     sinterklaas.style.height = "30vh";
     sinterklaas.style.bottom = "-4vh";
     sinterklaas.style.display = "none";
     sinterklaas.style.left = "-100%";
 
     document.body.appendChild(sinterklaas);
+
+    const birthDay = document.createElement("img");
+    birthDay.src = "https://www.pngall.com/wp-content/uploads/5/Birthday-Decoration-PNG-Download-Image.png";
+    birthDay.style.position = "fixed";
+    birthDay.style.zIndex = "99999998";
+    birthDay.style.width = "100vw";
+    birthDay.style.top = "-100%";
+    birthDay.style.display = "none";
+    birthDay.style.left = "0";
+
+    document.body.appendChild(birthDay);
 
 
     /*defining animations*/
@@ -93,7 +104,26 @@
         requestAnimationFrame(sinterklaasCycle);
     }
 
+    const birthDayCycle = () => {
+        birthDay.style.display = "block";
+        birthDay.style.top = parseInt(birthDay.style.top) + 1 + "%";
+        if (parseInt(birthDay.style.top) > 0) {
+            requestAnimationFrame(birthDayCycleReverse);
+            return;
+        }
+        requestAnimationFrame(birthDayCycle);
+    }
 
+    const birthDayCycleReverse = () => {
+        birthDay.style.display = "block";
+        birthDay.style.top = parseInt(birthDay.style.top) - 1 + "%";
+        if (parseInt(birthDay.style.top) < -100) {
+            birthDay.style.display = "none";
+            birthDay.style.top = "-100%";            
+            return;
+        }
+        requestAnimationFrame(birthDayCycleReverse);
+    }
     /*timouts for animations*/
     setInterval(() => {
         var date = new Date();
@@ -104,7 +134,7 @@
         }
 
         //if it's christmas, run santa every 30 minutes
-        if (date.getMonth() == 11 && date.getDate() >= 6) {
+        if (date.getMonth() == 12 && date.getDate() >= 6) {
             if (date.getMinutes() % 30 == 0) {
                 santaCycle();
             }
@@ -113,13 +143,20 @@
             christmas.style.display = "none";
         }
 
-        if (date.getMonth() == 11 && date.getDate() == 5) {
+        if (date.getMonth() == 12 && date.getDate() == 5) {
             if (date.getMinutes() % 30 == 0) {
                 sinterklaasCycle();
             }
         }
 
-
+        if(date.getMonth() == 11 && date.getDate() == 29){
+            if (date.getMinutes() % 30 == 0) {
+                birthDayCycle();
+            }
+        }
+            
     }, 60000);
+
+    
 
 })();
