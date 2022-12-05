@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Screensaver
 // @namespace    http://tampermonkey.net/
-// @version      0.7
+// @version      0.8
 // @description  screensaver for saving the oled screen from burnin
 // @author       Paul van der Lei
 // @match        https://monitoring.wics.nl/*
@@ -134,7 +134,7 @@
         }
 
         //if it's christmas, run santa every 30 minutes
-        if (date.getMonth() == 12 && date.getDate() >= 6) {
+        if (date.getMonth() + 1 == 12 && date.getDate() >= 6) {
             if (date.getMinutes() % 30 == 0) {
                 santaCycle();
             }
@@ -143,18 +143,11 @@
             christmas.style.display = "none";
         }
 
-        if (date.getMonth() == 12 && date.getDate() == 5) {
+        if (date.getMonth() + 1 == 12 && date.getDate() == 5) {
             if (date.getMinutes() % 30 == 0) {
                 sinterklaasCycle();
             }
-        }
-
-        if(date.getMonth() == 11 && date.getDate() == 29){
-            if (date.getMinutes() % 30 == 0) {
-                birthDayCycle();
-            }
-        }
-            
+        }   
     }, 60000);
 
     
