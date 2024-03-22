@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Screensaver
 // @namespace    http://tampermonkey.net/
-// @version      0.11
+// @version      0.12
 // @description  screensaver for saving the oled screen from burnin
 // @author       Paul van der Lei
 // @match        https://monitoring.wics.nl/*
@@ -13,7 +13,7 @@
   "use strict";
 
   /*Creating Image*/
-  const imageUrl = "https://development.wics.nl/3sprint/img/favicon.png";
+  const imageUrl = "https://development.wics.nl/3sprint/dist/img/favicon.png";
   const image = document.createElement("img");
   image.src = imageUrl;
   image.style.height = "110vh";
