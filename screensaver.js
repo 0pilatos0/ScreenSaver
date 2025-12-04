@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Screensaver
 // @namespace    http://tampermonkey.net/
-// @version      0.13
+// @version      0.14
 // @description  screensaver for saving the oled screen from burnin
 // @author       Paul van der Lei
 // @match        https://monitoring.wics.nl/*
@@ -164,6 +164,20 @@
     }
     requestAnimationFrame(birthDayCycleReverse);
   };
+
+  // Expose methods to console for testing
+  window.startRoll = roll;
+  window.startSanta = santaCycle;
+  window.startSinterklaas = sinterklaasCycle;
+  window.startBirthday = birthDayCycle;
+
+  // Expose snow control
+  Object.defineProperty(window, 'snow', {
+    get: () => document.getElementById("snow").style.display === "block",
+    set: (value) => {
+      document.getElementById("snow").style.display = value ? "block" : "none";
+    }
+  });
 
   var date = new Date();
 
