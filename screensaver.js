@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Screensaver
 // @namespace    http://tampermonkey.net/
-// @version      0.14
+// @version      0.15
 // @description  screensaver for saving the oled screen from burnin
 // @author       Paul van der Lei
 // @match        https://monitoring.wics.nl/*
@@ -165,14 +165,19 @@
     requestAnimationFrame(birthDayCycleReverse);
   };
 
+setTimeout(() => {
+
   // Expose methods to console for testing
-  window.startRoll = roll;
-  window.startSanta = santaCycle;
-  window.startSinterklaas = sinterklaasCycle;
-  window.startBirthday = birthDayCycle;
+  unsafeWindow.startRoll = roll;
+  unsafeWindow.startSanta = santaCycle;
+  unsafeWindow.startSinterklaas = sinterklaasCycle;
+  unsafeWindow.startBirthday = birthDayCycle;
+  console.log("Screensaver controls exposed: startRoll(), startSanta(), startSinterklaas(), startBirthday()");
+}, 1000);
+
 
   // Expose snow control
-  Object.defineProperty(window, 'snow', {
+  Object.defineProperty(unsafeWindow, 'snow', {
     get: () => document.getElementById("snow").style.display === "block",
     set: (value) => {
       document.getElementById("snow").style.display = value ? "block" : "none";
