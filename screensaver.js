@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Screensaver
 // @namespace    http://tampermonkey.net/
-// @version      0.15
+// @version      0.16
 // @description  screensaver for saving the oled screen from burnin
 // @author       Paul van der Lei
 // @match        https://monitoring.wics.nl/*
@@ -12,7 +12,9 @@
 (function () {
   "use strict";
 
-  /*Creating Image*/
+  // ===== DOM ELEMENTS SETUP =====
+
+  // Main screensaver logo image
   const imageUrl = "https://development.wics.nl/3sprint/dist/img/favicon.png";
   const image = document.createElement("img");
   image.src = imageUrl;
@@ -24,6 +26,7 @@
   image.style.display = "none";
   document.body.appendChild(image);
 
+  // Santa sleigh for Christmas season
   const santa = document.createElement("img");
   santa.src = "https://www.pngall.com/wp-content/uploads/5/Santa-Sleigh-PNG.png";
   santa.style.position = "fixed";
@@ -35,6 +38,7 @@
 
   document.body.appendChild(santa);
 
+  // Christmas decoration in corner
   const christmas = document.createElement("img");
   christmas.src = "https://cdn.pixabay.com/photo/2016/11/10/18/48/christmas-decorations-1814927_960_720.png";
   christmas.style.position = "fixed";
@@ -43,9 +47,25 @@
   christmas.style.right = "0";
   christmas.style.display = "none";
   christmas.style.top = "0";
+  christmas.style.animation = "christmasGlow 3s ease-in-out infinite";
 
   document.body.appendChild(christmas);
 
+  // Add CSS animation for Christmas decoration glow
+  const christmasGlowStyle = document.createElement("style");
+  christmasGlowStyle.textContent = `
+    @keyframes christmasGlow {
+      0%, 100% {
+        filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6));
+      }
+      50% {
+        filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9));
+      }
+    }
+  `;
+  document.head.appendChild(christmasGlowStyle);
+
+  // Sinterklaas on horse for December 5th
   const sinterklaas = document.createElement("img");
   sinterklaas.src = "https://comicvine.gamespot.com/a/uploads/scale_small/11113/111139104/3602827-sinterklaas-paard.png";
   sinterklaas.style.position = "fixed";
@@ -57,6 +77,32 @@
 
   document.body.appendChild(sinterklaas);
 
+  // ===== PARTICLE CONTAINERS =====
+  // Container for pepernoten particles (Sinterklaas)
+  const pepernotenContainer = document.createElement("div");
+  pepernotenContainer.id = "pepernoten-container";
+  pepernotenContainer.style.position = "fixed";
+  pepernotenContainer.style.top = "0";
+  pepernotenContainer.style.left = "0";
+  pepernotenContainer.style.width = "100vw";
+  pepernotenContainer.style.height = "100vh";
+  pepernotenContainer.style.pointerEvents = "none";
+  pepernotenContainer.style.zIndex = "99999997";
+  document.body.appendChild(pepernotenContainer);
+
+  // Container for present particles (Santa)
+  const presentsContainer = document.createElement("div");
+  presentsContainer.id = "presents-container";
+  presentsContainer.style.position = "fixed";
+  presentsContainer.style.top = "0";
+  presentsContainer.style.left = "0";
+  presentsContainer.style.width = "100vw";
+  presentsContainer.style.height = "100vh";
+  presentsContainer.style.pointerEvents = "none";
+  presentsContainer.style.zIndex = "99999997";
+  document.body.appendChild(presentsContainer);
+
+  // Birthday decoration
   const birthDay = document.createElement("img");
   birthDay.src = "https://www.pngall.com/wp-content/uploads/5/Birthday-Decoration-PNG-Download-Image.png";
   birthDay.style.position = "fixed";
@@ -68,11 +114,12 @@
 
   document.body.appendChild(birthDay);
 
+  // Snow effect container
   const snow = document.createElement("div");
   snow.id = "snow";
-
   document.body.appendChild(snow);
 
+  // Event notification display
   const event = document.createElement("div");
   event.id = "event";
   event.style.position = "fixed";
@@ -109,42 +156,180 @@
 
   document.body.appendChild(event);
 
-  /*defining animations*/
+  // ===== ANIMATION FUNCTIONS =====
+
+  // Animation state flags to prevent multiple simultaneous animations
+  let isRollAnimating = false;
+  let isSantaAnimating = false;
+  let isSinterklaasAnimating = false;
+  let isBirthdayAnimating = false;
+
+  // Helper function to create falling pepernoten (gingerbread cookies)
+  function createPepernoet(x, y) {
+    const pepernoet = document.createElement("div");
+    pepernoet.textContent = "🍪";
+    pepernoet.style.position = "absolute";
+    pepernoet.style.left = x + "px";
+    pepernoet.style.top = y + "px";
+    pepernoet.style.fontSize = "20px";
+    pepernoet.style.opacity = "1";
+    pepernotenContainer.appendChild(pepernoet);
+
+    let fallPos = 0;
+    let opacity = 1;
+
+    const animatePepernoet = () => {
+      fallPos += 3;
+      opacity -= 0.015;
+      pepernoet.style.top = (y + fallPos) + "px";
+      pepernoet.style.opacity = opacity.toString();
+
+      if (opacity <= 0) {
+        pepernoet.remove();
+        return;
+      }
+      requestAnimationFrame(animatePepernoet);
+    };
+    requestAnimationFrame(animatePepernoet);
+  }
+
+  // Helper function to create falling presents
+  function createPresent(x, y) {
+    const presentEmojis = ["🎁", "🎀", "📦"];
+    const present = document.createElement("div");
+    present.textContent = presentEmojis[Math.floor(Math.random() * presentEmojis.length)];
+    present.style.position = "absolute";
+    present.style.left = x + "px";
+    present.style.top = y + "px";
+    present.style.fontSize = "24px";
+    present.style.opacity = "1";
+    presentsContainer.appendChild(present);
+
+    let fallPos = 0;
+    let opacity = 1;
+    let rotation = 0;
+
+    const animatePresent = () => {
+      fallPos += 4;
+      opacity -= 0.012;
+      rotation += 5;
+      present.style.top = (y + fallPos) + "px";
+      present.style.opacity = opacity.toString();
+      present.style.transform = `rotate(${rotation}deg)`;
+
+      if (opacity <= 0) {
+        present.remove();
+        return;
+      }
+      requestAnimationFrame(animatePresent);
+    };
+    requestAnimationFrame(animatePresent);
+  }
+
   const roll = () => {
+    // Prevent multiple simultaneous roll animations
+    if (!isRollAnimating) {
+      isRollAnimating = true;
+    }
+
     image.style.display = "block";
     image.style.left = parseInt(image.style.left) + 1 + "%";
     image.style.transform = `rotate(${parseInt(image.style.left) * 2}deg)`;
     if (parseInt(image.style.left) > 100) {
       image.style.left = "-100%";
       image.style.display = "none";
+      isRollAnimating = false;
       return;
     }
     requestAnimationFrame(roll);
   };
 
+  // Animation state tracking for Santa
+  let santaAnimationFrame = 0;
+
   const santaCycle = () => {
+    // Prevent multiple simultaneous Santa animations
+    if (!isSantaAnimating) {
+      isSantaAnimating = true;
+      santaAnimationFrame = 0;
+    }
+
     santa.style.display = "block";
-    santa.style.left = parseInt(santa.style.left) + 1 + "%";
-    if (parseInt(santa.style.left) > 100) {
+    const leftPos = parseInt(santa.style.left) + 1;
+    santa.style.left = leftPos + "%";
+
+    // Add flying bobbing effect (sine wave)
+    const bob = Math.sin(santaAnimationFrame * 0.1) * 3; // 3vh amplitude for smoother flight
+    santa.style.bottom = (-8 + bob) + "vh";
+
+    // Drop presents occasionally (every 18 frames for very subtle effect)
+    if (santaAnimationFrame % 18 === 0 && leftPos > 10 && leftPos < 95) {
+      const santaRect = santa.getBoundingClientRect();
+      createPresent(
+        santaRect.left + santaRect.width / 3,
+        santaRect.top + santaRect.height / 2
+      );
+    }
+
+    santaAnimationFrame++;
+
+    if (leftPos > 100) {
       santa.style.left = "-100%";
+      santa.style.bottom = "-8vh";
       santa.style.display = "none";
+      santaAnimationFrame = 0;
+      isSantaAnimating = false;
       return;
     }
     requestAnimationFrame(santaCycle);
   };
 
+  // Animation state tracking for Sinterklaas
+  let sinterklaasAnimationFrame = 0;
+
   const sinterklaasCycle = () => {
+    // Prevent multiple simultaneous Sinterklaas animations
+    if (!isSinterklaasAnimating) {
+      isSinterklaasAnimating = true;
+      sinterklaasAnimationFrame = 0;
+    }
+
     sinterklaas.style.display = "block";
-    sinterklaas.style.left = parseInt(sinterklaas.style.left) + 1 + "%";
-    if (parseInt(sinterklaas.style.left) > 100) {
+    const leftPos = parseInt(sinterklaas.style.left) + 1;
+    sinterklaas.style.left = leftPos + "%";
+
+    // Add galloping bounce effect (sine wave)
+    const bounce = Math.sin(sinterklaasAnimationFrame * 0.15) * 2; // 2vh amplitude
+    sinterklaas.style.bottom = (-4 + bounce) + "vh";
+
+    // Drop pepernoten occasionally (every 12 frames for subtle effect)
+    if (sinterklaasAnimationFrame % 12 === 0 && leftPos > 0 && leftPos < 100) {
+      const sinterklaasRect = sinterklaas.getBoundingClientRect();
+      createPepernoet(
+        sinterklaasRect.left + sinterklaasRect.width / 2,
+        sinterklaasRect.top + sinterklaasRect.height / 2
+      );
+    }
+
+    sinterklaasAnimationFrame++;
+
+    if (leftPos > 100) {
       sinterklaas.style.left = "-100%";
+      sinterklaas.style.bottom = "-4vh";
       sinterklaas.style.display = "none";
+      sinterklaasAnimationFrame = 0;
+      isSinterklaasAnimating = false;
       return;
     }
     requestAnimationFrame(sinterklaasCycle);
   };
 
   const birthDayCycle = () => {
+    // Prevent multiple simultaneous birthday animations
+    if (!isBirthdayAnimating) {
+      isBirthdayAnimating = true;
+    }
+
     birthDay.style.display = "block";
     birthDay.style.top = parseInt(birthDay.style.top) + 1 + "%";
     if (parseInt(birthDay.style.top) > 0) {
@@ -160,67 +345,177 @@
     if (parseInt(birthDay.style.top) < -100) {
       birthDay.style.display = "none";
       birthDay.style.top = "-100%";
+      isBirthdayAnimating = false;
       return;
     }
     requestAnimationFrame(birthDayCycleReverse);
   };
 
 setTimeout(() => {
+  // ===== CONSOLE DEBUGGING / TESTING API =====
 
-  // Expose methods to console for testing
-  unsafeWindow.startRoll = roll;
-  unsafeWindow.startSanta = santaCycle;
-  unsafeWindow.startSinterklaas = sinterklaasCycle;
-  unsafeWindow.startBirthday = birthDayCycle;
-  console.log("Screensaver controls exposed: startRoll(), startSanta(), startSinterklaas(), startBirthday()");
+  // Helper function to show all available commands
+  unsafeWindow.screensaverHelp = () => {
+    console.log(`
+╔════════════════════════════════════════════════════════════════╗
+║           SCREENSAVER DEBUG & TESTING COMMANDS                 ║
+╠════════════════════════════════════════════════════════════════╣
+║                                                                ║
+║  ANIMATIONS:                                                   ║
+║    startRoll()         - Start the rolling logo animation     ║
+║    startSanta()        - Start Santa's sleigh animation       ║
+║    startSinterklaas()  - Start Sinterklaas animation          ║
+║    startBirthday()     - Start birthday decoration animation  ║
+║                                                                ║
+║  CONTROLS:                                                     ║
+║    snow = true/false   - Toggle snow effect on/off            ║
+║                                                                ║
+║  INFORMATION:                                                  ║
+║    screensaverStatus() - Show current state and config        ║
+║    screensaverHelp()   - Show this help menu                  ║
+║                                                                ║
+╚════════════════════════════════════════════════════════════════╝
+    `);
+  };
+
+  // Status function to show current configuration and state
+  unsafeWindow.screensaverStatus = () => {
+    const date = new Date();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const isChristmas = month === 12 && day >= 6;
+    const isSinterklaasDay = month === 12 && day === 5;
+
+    console.log(`
+╔════════════════════════════════════════════════════════════════╗
+║                    SCREENSAVER STATUS                          ║
+╠════════════════════════════════════════════════════════════════╣
+║                                                                ║
+║  Version: 0.16                                                 ║
+║  Date: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}                      ║
+║                                                                ║
+║  CONFIGURATION:                                                ║
+║    Roll frequency: Every ${config.screensaver.rollFrequency} hours                        ║
+║    Sinterklaas: Dec ${config.sinterklaas.day} (every ${config.sinterklaas.frequency} min)               ║
+║    Christmas: Dec ${config.christmas.startDay}-31 (every ${config.christmas.frequency} min)             ║
+║                                                                ║
+║  CURRENT STATE:                                                ║
+║    Roll animating: ${isRollAnimating ? 'YES' : 'NO'}                                  ║
+║    Santa animating: ${isSantaAnimating ? 'YES' : 'NO'}                                ║
+║    Sinterklaas animating: ${isSinterklaasAnimating ? 'YES' : 'NO'}                         ║
+║    Birthday animating: ${isBirthdayAnimating ? 'YES' : 'NO'}                            ║
+║    Snow active: ${document.getElementById("snow").style.display === "block" ? 'YES' : 'NO'}                                   ║
+║    Christmas mode: ${isChristmas ? 'YES' : 'NO'}                                ║
+║    Sinterklaas day: ${isSinterklaasDay ? 'YES' : 'NO'}                              ║
+║                                                                ║
+╚════════════════════════════════════════════════════════════════╝
+    `);
+  };
+
+  // Wrap animation functions with console feedback
+  unsafeWindow.startRoll = () => {
+    console.log("🔄 Starting roll animation...");
+    if (isRollAnimating) {
+      console.warn("⚠️  Roll animation already in progress!");
+      return;
+    }
+    roll();
+  };
+
+  unsafeWindow.startSanta = () => {
+    console.log("🎅 Starting Santa animation...");
+    if (isSantaAnimating) {
+      console.warn("⚠️  Santa animation already in progress!");
+      return;
+    }
+    santaCycle();
+  };
+
+  unsafeWindow.startSinterklaas = () => {
+    console.log("🐴 Starting Sinterklaas animation...");
+    if (isSinterklaasAnimating) {
+      console.warn("⚠️  Sinterklaas animation already in progress!");
+      return;
+    }
+    sinterklaasCycle();
+  };
+
+  unsafeWindow.startBirthday = () => {
+    console.log("🎂 Starting birthday animation...");
+    if (isBirthdayAnimating) {
+      console.warn("⚠️  Birthday animation already in progress!");
+      return;
+    }
+    birthDayCycle();
+  };
+
+  // Log initialization complete
+  console.log("%c🎬 Screensaver v0.16 loaded!", "color: #4CAF50; font-weight: bold; font-size: 14px;");
+  console.log("%cType screensaverHelp() for available commands", "color: #2196F3; font-style: italic;");
 }, 1000);
 
 
-  // Expose snow control
+  // Expose snow control with feedback
   Object.defineProperty(unsafeWindow, 'snow', {
     get: () => document.getElementById("snow").style.display === "block",
     set: (value) => {
-      document.getElementById("snow").style.display = value ? "block" : "none";
+      const snowElement = document.getElementById("snow");
+      if (value) {
+        snowElement.style.display = "block";
+        console.log("❄️  Snow enabled");
+      } else {
+        snowElement.style.display = "none";
+        console.log("☀️  Snow disabled");
+      }
     }
   });
 
-  var date = new Date();
-
-  //quick refresh of all colors to White/orange scheduled every hour
-  if (date.getHours() % 2 == 0 && date.getMinutes() == 0) {
-    roll();
-  }
-
-  //if it's christmas, run santa every 30 minutes
-  if (date.getMonth() + 1 == 12 && date.getDate() >= 6) {
-    if (date.getMinutes() % 30 == 0) {
-      santaCycle();
+  // ===== CONFIGURATION =====
+  const config = {
+    screensaver: {
+      interval: 60000, // Check every minute
+      rollFrequency: 2, // Every 2 hours
+    },
+    sinterklaas: {
+      month: 12,
+      day: 5,
+      frequency: 30, // Every 30 minutes
+    },
+    christmas: {
+      month: 12,
+      startDay: 6,
+      frequency: 30, // Every 30 minutes
     }
-    document.getElementById("snow").style.display = "block";
-    christmas.style.display = "block";
-  } else {
-    document.getElementById("snow").style.display = "none";
-    christmas.style.display = "none";
-  }
+  };
 
-  if (date.getMonth() + 1 == 12 && date.getDate() == 5) {
-    if (date.getMinutes() % 30 == 0) {
-      sinterklaasCycle();
-    }
-  }
+  // ===== HELPER FUNCTIONS =====
+  function checkAndRunAnimations() {
+    const date = new Date();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
 
-  /*timouts for animations*/
-  setInterval(() => {
-    var date = new Date();
-
-    //quick refresh of all colors to White/orange scheduled every hour
-    if (date.getHours() % 2 == 0 && date.getMinutes() == 0) {
+    // Roll animation every 2 hours at :00 (only if not already animating)
+    if (hours % config.screensaver.rollFrequency === 0 && minutes === 0 && !isRollAnimating) {
+      console.log("🔄 Auto-starting roll animation (scheduled)");
       roll();
     }
 
-    //if it's christmas, run santa every 30 minutes
-    if (date.getMonth() + 1 == 12 && date.getDate() >= 6) {
-      if (date.getMinutes() % 30 == 0) {
+    // Sinterklaas (December 5th only, only if not already animating)
+    if (month === config.sinterklaas.month && day === config.sinterklaas.day) {
+      if (minutes % config.sinterklaas.frequency === 0 && !isSinterklaasAnimating) {
+        console.log("🐴 Auto-starting Sinterklaas animation (scheduled)");
+        sinterklaasCycle();
+      }
+    }
+
+    // Christmas (December 6-31)
+    const isChristmasSeason = month === config.christmas.month && day >= config.christmas.startDay;
+    if (isChristmasSeason) {
+      // Only start Santa if not already animating
+      if (minutes % config.christmas.frequency === 0 && !isSantaAnimating) {
+        console.log("🎅 Auto-starting Santa animation (scheduled)");
         santaCycle();
       }
       document.getElementById("snow").style.display = "block";
@@ -229,13 +524,13 @@ setTimeout(() => {
       document.getElementById("snow").style.display = "none";
       christmas.style.display = "none";
     }
+  }
 
-    if (date.getMonth() + 1 == 12 && date.getDate() == 5) {
-      if (date.getMinutes() % 30 == 0) {
-        sinterklaasCycle();
-      }
-    }
-  }, 60000);
+  // Run on initial load
+  checkAndRunAnimations();
+
+  // Run every minute
+  setInterval(checkAndRunAnimations, config.screensaver.interval);
 
   let snowflakes_count = 40;
 
@@ -256,16 +551,7 @@ setTimeout(() => {
     snowflakes_count = total;
   }
 
-  // This function allows you to turn on and off the snow
-  function toggle_snow() {
-    let check_box = document.getElementById("toggle_snow");
-    if (check_box.checked == true) {
-      document.getElementById("snow").style.display = "block";
-    } else {
-      document.getElementById("snow").style.display = "none";
-    }
-  }
-
+  // ===== SNOW FUNCTIONS =====
   // Creating snowflakes
   function spawn_snow(snow_density = 200) {
     snow_density -= 1;
