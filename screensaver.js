@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Screensaver
 // @namespace    http://tampermonkey.net/
-// @version      0.12
+// @version      0.13
 // @description  screensaver for saving the oled screen from burnin
 // @author       Paul van der Lei
 // @match        https://monitoring.wics.nl/*
@@ -25,8 +25,7 @@
   document.body.appendChild(image);
 
   const santa = document.createElement("img");
-  santa.src =
-    "https://www.pngall.com/wp-content/uploads/5/Santa-Sleigh-PNG.png";
+  santa.src = "https://www.pngall.com/wp-content/uploads/5/Santa-Sleigh-PNG.png";
   santa.style.position = "fixed";
   santa.style.zIndex = "99999998";
   santa.style.height = "30vh";
@@ -37,8 +36,7 @@
   document.body.appendChild(santa);
 
   const christmas = document.createElement("img");
-  christmas.src =
-    "https://cdn.pixabay.com/photo/2016/11/10/18/48/christmas-decorations-1814927_960_720.png";
+  christmas.src = "https://cdn.pixabay.com/photo/2016/11/10/18/48/christmas-decorations-1814927_960_720.png";
   christmas.style.position = "fixed";
   christmas.style.zIndex = "99999998";
   christmas.style.height = "30vh";
@@ -49,8 +47,7 @@
   document.body.appendChild(christmas);
 
   const sinterklaas = document.createElement("img");
-  sinterklaas.src =
-    "https://miamary.clubs.nl/afbeeldingen/album/21867269/3602827-sinterklaas-paard.png";
+  sinterklaas.src = "https://comicvine.gamespot.com/a/uploads/scale_small/11113/111139104/3602827-sinterklaas-paard.png";
   sinterklaas.style.position = "fixed";
   sinterklaas.style.zIndex = "99999998";
   sinterklaas.style.height = "30vh";
@@ -61,8 +58,7 @@
   document.body.appendChild(sinterklaas);
 
   const birthDay = document.createElement("img");
-  birthDay.src =
-    "https://www.pngall.com/wp-content/uploads/5/Birthday-Decoration-PNG-Download-Image.png";
+  birthDay.src = "https://www.pngall.com/wp-content/uploads/5/Birthday-Decoration-PNG-Download-Image.png";
   birthDay.style.position = "fixed";
   birthDay.style.zIndex = "99999998";
   birthDay.style.width = "100vw";
@@ -329,36 +325,4 @@
     spawnSnowCSS(snowflakes_count);
     spawn_snow(snowflakes_count);
   }, 3000);
-
-  function checkEvents() {
-    //poll to events.paulvanderlei.com/events
-    console.log("checking events");
-    const pollLocation = "https://events.paulvanderlei.com/events";
-
-    var headers = {};
-
-    //get the events
-    fetch(pollLocation, {
-      method: "GET",
-      mode: "cors",
-      headers: headers,
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);
-        let currentEvent = data.events[0];
-
-        if (currentEvent == undefined) {
-          return;
-        }
-
-        document.getElementById("event").style.display = "block";
-        document.getElementById("eventText").innerHTML = currentEvent.name;
-        let eventTime = new Date(currentEvent.time * 1000);
-        document.getElementById("eventTime").innerHTML =
-          eventTime.getHours() + ":" + eventTime.getMinutes();
-      });
-  }
-
-  checkEvents();
 })();
