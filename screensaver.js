@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Screensaver
 // @namespace    http://tampermonkey.net/
-// @version      0.16
+// @version      0.17
 // @description  screensaver for saving the oled screen from burnin
 // @author       Paul van der Lei
 // @match        https://monitoring.wics.nl/*
@@ -32,7 +32,7 @@
   santa.style.position = "fixed";
   santa.style.zIndex = "99999998";
   santa.style.height = "30vh";
-  santa.style.bottom = "-8vh";
+  santa.style.bottom = "0vh"; // Raised from -8vh to be more visible
   santa.style.display = "none";
   santa.style.left = "-100%";
 
@@ -71,7 +71,7 @@
   sinterklaas.style.position = "fixed";
   sinterklaas.style.zIndex = "99999998";
   sinterklaas.style.height = "30vh";
-  sinterklaas.style.bottom = "-4vh";
+  sinterklaas.style.bottom = "2vh"; // Raised from -4vh to be more visible
   sinterklaas.style.display = "none";
   sinterklaas.style.left = "-100%";
 
@@ -173,18 +173,31 @@
     pepernoet.style.top = y + "px";
     pepernoet.style.fontSize = "20px";
     pepernoet.style.opacity = "1";
+    pepernoet.style.transition = "transform 0.1s ease-out";
     pepernotenContainer.appendChild(pepernoet);
 
     let fallPos = 0;
     let opacity = 1;
+    let rotation = Math.random() * 360; // Random starting rotation
+    let rotationSpeed = (Math.random() - 0.5) * 4; // Random rotation speed between -2 and +2
+    const swaySpeed = 0.02 + Math.random() * 0.01; // Vary sway speed per cookie
+    const swayAmount = 15 + Math.random() * 10; // Vary sway amount (15-25px)
 
     const animatePepernoet = () => {
-      fallPos += 3;
-      opacity -= 0.015;
-      pepernoet.style.top = (y + fallPos) + "px";
-      pepernoet.style.opacity = opacity.toString();
+      // Slower fall with slight acceleration
+      fallPos += 1.2 + (fallPos * 0.003); // Starts at 1.2, gradually accelerates
+      opacity -= 0.006; // Much slower fade
+      rotation += rotationSpeed; // Gentle tumbling
 
-      if (opacity <= 0) {
+      // More natural sway pattern
+      const sway = Math.sin(fallPos * swaySpeed) * swayAmount;
+
+      pepernoet.style.top = (y + fallPos) + "px";
+      pepernoet.style.left = (x + sway) + "px";
+      pepernoet.style.opacity = opacity.toString();
+      pepernoet.style.transform = `rotate(${rotation}deg)`;
+
+      if (opacity <= 0 || (y + fallPos) > window.innerHeight + 50) {
         pepernoet.remove();
         return;
       }
@@ -201,23 +214,35 @@
     present.style.position = "absolute";
     present.style.left = x + "px";
     present.style.top = y + "px";
-    present.style.fontSize = "24px";
+    present.style.fontSize = "26px";
     present.style.opacity = "1";
+    present.style.transition = "transform 0.1s ease-out";
     presentsContainer.appendChild(present);
 
     let fallPos = 0;
     let opacity = 1;
-    let rotation = 0;
+    let rotation = Math.random() * 360; // Random starting rotation
+    let rotationSpeed = (Math.random() - 0.5) * 6; // Random rotation speed between -3 and +3
+    const swaySpeed = 0.015 + Math.random() * 0.01; // Vary sway speed per present
+    const swayAmount = 20 + Math.random() * 15; // Vary sway amount (20-35px)
+    const fallSpeed = 1.5 + Math.random() * 0.5; // Slightly random fall speed (1.5-2.0)
 
     const animatePresent = () => {
-      fallPos += 4;
-      opacity -= 0.012;
-      rotation += 5;
-      present.style.top = (y + fallPos) + "px";
-      present.style.opacity = opacity.toString();
-      present.style.transform = `rotate(${rotation}deg)`;
+      // Presents fall a bit faster than cookies but still graceful
+      fallPos += fallSpeed + (fallPos * 0.002); // Slight acceleration
+      opacity -= 0.005; // Slow fade
+      rotation += rotationSpeed; // Tumbling
 
-      if (opacity <= 0) {
+      // More natural sway pattern with slight wobble
+      const sway = Math.sin(fallPos * swaySpeed) * swayAmount;
+      const wobble = Math.cos(fallPos * swaySpeed * 2.3) * (swayAmount * 0.3);
+
+      present.style.top = (y + fallPos) + "px";
+      present.style.left = (x + sway + wobble) + "px";
+      present.style.opacity = opacity.toString();
+      present.style.transform = `rotate(${rotation}deg) scale(${1 + Math.sin(fallPos * 0.05) * 0.1})`;
+
+      if (opacity <= 0 || (y + fallPos) > window.innerHeight + 50) {
         present.remove();
         return;
       }
@@ -233,9 +258,10 @@
     }
 
     image.style.display = "block";
-    image.style.left = parseInt(image.style.left) + 1 + "%";
-    image.style.transform = `rotate(${parseInt(image.style.left) * 2}deg)`;
-    if (parseInt(image.style.left) > 100) {
+    const leftPos = parseFloat(image.style.left) + 0.6; // Use parseFloat to preserve decimals
+    image.style.left = leftPos + "%";
+    image.style.transform = `rotate(${leftPos * 2}deg)`;
+    if (leftPos > 100) {
       image.style.left = "-100%";
       image.style.display = "none";
       isRollAnimating = false;
@@ -255,19 +281,22 @@
     }
 
     santa.style.display = "block";
-    const leftPos = parseInt(santa.style.left) + 1;
+    const leftPos = parseFloat(santa.style.left) + 0.5; // Use parseFloat to preserve decimals
     santa.style.left = leftPos + "%";
 
-    // Add flying bobbing effect (sine wave)
-    const bob = Math.sin(santaAnimationFrame * 0.1) * 3; // 3vh amplitude for smoother flight
-    santa.style.bottom = (-8 + bob) + "vh";
+    // Add flying bobbing effect (sine wave) - slower, more graceful
+    const bob = Math.sin(santaAnimationFrame * 0.05) * 3; // Reduced from 0.1 to 0.05 for slower bob
+    santa.style.bottom = (0 + bob) + "vh";
 
-    // Drop presents occasionally (every 18 frames for very subtle effect)
-    if (santaAnimationFrame % 18 === 0 && leftPos > 10 && leftPos < 95) {
+    // Drop presents occasionally (every 24 frames for very subtle effect)
+    // Only spawn when Santa is on-screen (between 5% and 90%)
+    if (santaAnimationFrame % 24 === 0 && leftPos > 5 && leftPos < 90) {
       const santaRect = santa.getBoundingClientRect();
+      // Spawn at a visible height (65% down from top) to ensure particles are visible
+      const visibleY = Math.min(santaRect.top, window.innerHeight * 0.65);
       createPresent(
-        santaRect.left + santaRect.width / 3,
-        santaRect.top + santaRect.height / 2
+        santaRect.left + santaRect.width / 2,
+        visibleY
       );
     }
 
@@ -275,7 +304,7 @@
 
     if (leftPos > 100) {
       santa.style.left = "-100%";
-      santa.style.bottom = "-8vh";
+      santa.style.bottom = "0vh";
       santa.style.display = "none";
       santaAnimationFrame = 0;
       isSantaAnimating = false;
@@ -295,19 +324,22 @@
     }
 
     sinterklaas.style.display = "block";
-    const leftPos = parseInt(sinterklaas.style.left) + 1;
+    const leftPos = parseFloat(sinterklaas.style.left) + 0.5; // Use parseFloat to preserve decimals
     sinterklaas.style.left = leftPos + "%";
 
-    // Add galloping bounce effect (sine wave)
-    const bounce = Math.sin(sinterklaasAnimationFrame * 0.15) * 2; // 2vh amplitude
-    sinterklaas.style.bottom = (-4 + bounce) + "vh";
+    // Add galloping bounce effect (sine wave) - slower, more graceful gallop
+    const bounce = Math.sin(sinterklaasAnimationFrame * 0.08) * 2.5; // Reduced from 0.15 to 0.08, increased amplitude slightly
+    sinterklaas.style.bottom = (2 + bounce) + "vh";
 
-    // Drop pepernoten occasionally (every 12 frames for subtle effect)
-    if (sinterklaasAnimationFrame % 12 === 0 && leftPos > 0 && leftPos < 100) {
+    // Drop pepernoten occasionally (every 16 frames for subtle effect)
+    // Only spawn when Sinterklaas is on-screen (between 5% and 90%)
+    if (sinterklaasAnimationFrame % 16 === 0 && leftPos > 5 && leftPos < 90) {
       const sinterklaasRect = sinterklaas.getBoundingClientRect();
+      // Spawn at a visible height (70% down from top) to ensure particles are visible
+      const visibleY = Math.min(sinterklaasRect.top, window.innerHeight * 0.7);
       createPepernoet(
         sinterklaasRect.left + sinterklaasRect.width / 2,
-        sinterklaasRect.top + sinterklaasRect.height / 2
+        visibleY
       );
     }
 
@@ -315,7 +347,7 @@
 
     if (leftPos > 100) {
       sinterklaas.style.left = "-100%";
-      sinterklaas.style.bottom = "-4vh";
+      sinterklaas.style.bottom = "2vh";
       sinterklaas.style.display = "none";
       sinterklaasAnimationFrame = 0;
       isSinterklaasAnimating = false;
@@ -331,8 +363,9 @@
     }
 
     birthDay.style.display = "block";
-    birthDay.style.top = parseInt(birthDay.style.top) + 1 + "%";
-    if (parseInt(birthDay.style.top) > 0) {
+    const topPos = parseFloat(birthDay.style.top) + 1;
+    birthDay.style.top = topPos + "%";
+    if (topPos > 0) {
       requestAnimationFrame(birthDayCycleReverse);
       return;
     }
@@ -341,8 +374,9 @@
 
   const birthDayCycleReverse = () => {
     birthDay.style.display = "block";
-    birthDay.style.top = parseInt(birthDay.style.top) - 1 + "%";
-    if (parseInt(birthDay.style.top) < -100) {
+    const topPos = parseFloat(birthDay.style.top) - 1;
+    birthDay.style.top = topPos + "%";
+    if (topPos < -100) {
       birthDay.style.display = "none";
       birthDay.style.top = "-100%";
       isBirthdayAnimating = false;
@@ -368,7 +402,9 @@ setTimeout(() => {
 ║    startBirthday()     - Start birthday decoration animation  ║
 ║                                                                ║
 ║  CONTROLS:                                                     ║
-║    snow = true/false   - Toggle snow effect on/off            ║
+║    snow = true/false            - Toggle snow effect          ║
+║    christmasDecoration = true/false - Toggle decoration       ║
+║    christmasGlow = true/false   - Toggle decoration glow      ║
 ║                                                                ║
 ║  INFORMATION:                                                  ║
 ║    screensaverStatus() - Show current state and config        ║
@@ -385,13 +421,15 @@ setTimeout(() => {
     const day = date.getDate();
     const isChristmas = month === 12 && day >= 6;
     const isSinterklaasDay = month === 12 && day === 5;
+    const decorationVisible = christmas.style.display !== "none";
+    const glowActive = christmas.style.animation.includes("christmasGlow");
 
     console.log(`
 ╔════════════════════════════════════════════════════════════════╗
 ║                    SCREENSAVER STATUS                          ║
 ╠════════════════════════════════════════════════════════════════╣
 ║                                                                ║
-║  Version: 0.16                                                 ║
+║  Version: 0.17                                                 ║
 ║  Date: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}                      ║
 ║                                                                ║
 ║  CONFIGURATION:                                                ║
@@ -405,6 +443,8 @@ setTimeout(() => {
 ║    Sinterklaas animating: ${isSinterklaasAnimating ? 'YES' : 'NO'}                         ║
 ║    Birthday animating: ${isBirthdayAnimating ? 'YES' : 'NO'}                            ║
 ║    Snow active: ${document.getElementById("snow").style.display === "block" ? 'YES' : 'NO'}                                   ║
+║    Christmas decoration visible: ${decorationVisible ? 'YES' : 'NO'}                   ║
+║    Christmas decoration glow: ${glowActive ? 'YES' : 'NO'}                      ║
 ║    Christmas mode: ${isChristmas ? 'YES' : 'NO'}                                ║
 ║    Sinterklaas day: ${isSinterklaasDay ? 'YES' : 'NO'}                              ║
 ║                                                                ║
@@ -450,7 +490,7 @@ setTimeout(() => {
   };
 
   // Log initialization complete
-  console.log("%c🎬 Screensaver v0.16 loaded!", "color: #4CAF50; font-weight: bold; font-size: 14px;");
+  console.log("%c🎬 Screensaver v0.17 loaded!", "color: #4CAF50; font-weight: bold; font-size: 14px;");
   console.log("%cType screensaverHelp() for available commands", "color: #2196F3; font-style: italic;");
 }, 1000);
 
@@ -466,6 +506,34 @@ setTimeout(() => {
       } else {
         snowElement.style.display = "none";
         console.log("☀️  Snow disabled");
+      }
+    }
+  });
+
+  // Expose Christmas decoration control with feedback
+  Object.defineProperty(unsafeWindow, 'christmasDecoration', {
+    get: () => christmas.style.display !== "none",
+    set: (value) => {
+      if (value) {
+        christmas.style.display = "block";
+        console.log("🎄 Christmas decoration enabled");
+      } else {
+        christmas.style.display = "none";
+        console.log("🚫 Christmas decoration disabled");
+      }
+    }
+  });
+
+  // Expose Christmas decoration glow control with feedback
+  Object.defineProperty(unsafeWindow, 'christmasGlow', {
+    get: () => christmas.style.animation.includes("christmasGlow"),
+    set: (value) => {
+      if (value) {
+        christmas.style.animation = "christmasGlow 3s ease-in-out infinite";
+        console.log("✨ Christmas decoration glow enabled");
+      } else {
+        christmas.style.animation = "none";
+        console.log("🔅 Christmas decoration glow disabled");
       }
     }
   });
